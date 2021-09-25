@@ -1,0 +1,18 @@
+R7
+Habitacion id: Deluxe0 tipo: Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R7
+Habitacion id: Deluxe1 tipo: Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R8
+Habitacion id: Personal0 tipo: Personal Cantidad de adultos: 1 Cantidad de ninos: 0
+R9
+Habitacion id: Deluxe0 tipo: Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R9
+Habitacion id: Deluxe1 tipo: Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R9
+Habitacion id: Deluxe2 tipo: Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R9
+Habitacion id: Grande Deluxe0 tipo: Grande Deluxe Cantidad de adultos: 1 Cantidad de ninos: 0
+R9
+Habitacion id: Pequeña swite0 tipo: Pequeña swite Cantidad de adultos: 1 Cantidad de ninos: 0
+R9
+Habitacion id: Grande Swite0 tipo: Grande Swite Cantidad de adultos: 2 Cantidad de ninos: 0

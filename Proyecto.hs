@@ -1,11 +1,32 @@
 import System.IO
 import Control.DeepSeq
 import Control.Exception
-import Data.Time.Clock -- Hora
-import Data.Time.Calendar -- Fecha
+import Data.Time.Clock 
+import Data.Time.Calendar 
 import Data.Time.LocalTime
 import Data.Array (listArray)
+import System.Console.Haskeline (Interrupt(Interrupt))
 type FilePath = String
+
+
+--Objetivo: Crea fecha y hora actual
+--Entrada: --
+--Salida: Fecha y hora 
+--Restricciones: --
+fecha :: IO String
+fecha = do
+            zC<-getCurrentTimeZone
+            fC<-getCurrentTime
+            let (TimeOfDay hora minuto segundo) = localTimeOfDay $ utcToLocalTime zC fC
+            let (año,mes,dia) = toGregorian $ utctDay fC
+            pAño<-intToStr año
+            pDia<-intToStr dia
+            pMes<-intToStr mes
+            pHora<-intToStr hora
+            pMinuto<-intToStr minuto
+            pSegundo<-intToStr segundo
+            let fechaT = pAño++"/"++pMes++"/"++pDia++" "++pHora++":"++pMinuto++":"++pSegundo
+            return fechaT
 
 --Objetivo: Cambia un string a entero
 --Entrada: String
@@ -181,8 +202,8 @@ escribirCANTIDADES archivo nombre cant cont2 lista mensaje archivo2=do
 
 printearCantidadesHabitaciones::IO()
 printearCantidadesHabitaciones = do
-    lista1 <- leerArchivo("codigosHabitaciones.txt")
-    lista2<- leerArchivo("cantidadHabitaciones.txt")
+    lista1 <- leerArchivo"codigosHabitaciones.txt"
+    lista2<- leerArchivo"cantidadHabitaciones.txt"
     printearCantidadesHabitacionesAux lista2 lista1
 
 --cortarLista
@@ -197,7 +218,7 @@ cortarLista lista cant cont = do
     let tl = tail lista
     let cont2 = cont+1
     if cant == cont then
-        lista
+        tl
     else
         cortarLista tl cant cont2
 
@@ -213,7 +234,7 @@ printProximos lista cant cont lista2 = do
     let tl = tail lista2
     let cont2 = cont+1
     putStrLn (hd++"\n")
-    if (cont == cant-1) then 
+    if cont == cant-1 then 
         printearCantidadesHabitacionesAux lista tl
     else
         printProximos lista cant cont2 tl
@@ -231,12 +252,316 @@ printearCantidadesHabitacionesAux lista1 lista2 = do
     let tl2 = tail lista1 
     let tl3 = tail tl2
     let cantidad = read(head tl2)::Int
-    let mensaje = ("El tipo de habitacion "++nombre++" tiene las siguientes habitaciones, se muestran sus identificadores: \n")
+    let mensaje = "El tipo de habitacion "++nombre++" tiene las siguientes habitaciones, se muestran sus identificadores: \n"
     putStrLn mensaje
     printProximos tl3 cantidad 0 lista2
    
+--------------------------------------Reservación--------------------------------------------------------------------------------
+verificarFecha::String->String->String->String->String->String->Bool
+verificarFecha dia1 mes1 anio1 dia2 mes2 anio2 = do
+  let anioIngreso = read anio1::Int
+  let anioSalida = read anio2 ::Int
+  let mesIngreso = read mes1 ::Int
+  let mesSalida = read mes2 ::Int
+  let diaIngreso = read dia1 ::Int
+  let diaSalida = read dia2 ::Int
+  if anioSalida > anioIngreso then
+    True
+  else
+    if anioSalida == anioIngreso then
+      if mesSalida > mesIngreso then
+        True 
+      else
+        if mesSalida == mesIngreso then
+          if diaSalida > diaIngreso then
+            True 
+          else
+            False
+        else
+          False
+    else
+      False
 
--------------------------------Menus------------------------------------------------------------------------------
+
+reserver::IO()
+reserver = do
+    -- fecha de ingreso
+    putStrLn "Indique el dia de ingreso"
+    pDia <- getLine
+    putStrLn "Indique el mes de ingreso"
+    pMes <- getLine
+    putStrLn "Indique el anio de ingreso"
+    pAnio <- getLine
+    let fechaIngreso = [pDia]++[pMes]++[pAnio]
+    let fechaI = pDia++"/"++pMes++"/"++pAnio
+
+    -- fecha de salida
+    putStrLn "Indique el dia de salida"
+    pDiaS <- getLine
+    putStrLn "Indique el mes de salida"
+    pMesS <- getLine
+    putStrLn "Indique el anio de salida"
+    pAnioS <- getLine
+    let fechaSalida = [pDiaS]++[pMesS]++[pAnioS]
+    let fechaS = pDiaS++"/"++pMesS++"/"++pAnioS
+    -- datos extra
+    putStrLn "Indique cantidad de adultos"
+    pAdultos <- getLine
+    putStrLn "Indique la cantidad de niños"
+    pNinos <- getLine
+    putStrLn "Indique el nombre de la persona que reserva"
+    pNombre <- getLine
+    let res = [fechaI]++[fechaS]++[pAdultos]++[pNinos]++[pNombre]
+    if verificarFecha pDia pMes pAnio pDiaS pMesS pAnioS then
+        reservaporhabitacion res fechaIngreso fechaSalida
+    else    
+        fechaInvalida 
+    
+
+
+reservaporhabitacion::[String]->[String]->[String]->IO()
+reservaporhabitacion res fIngreso fSalida = do
+    lista0 <- leerArchivo"habitaciones.txt"
+    listaHabCanHab <- leerArchivo"cantidadHabitaciones.txt" --lista de cantidad de habitaciones en hotel
+    listareservasporfecha <- leerArchivo"reservacionesporFecha.txt" --lista de las reservaciones por fechas
+    let listaHabHues = listaHabitacionesAux2 lista0 [] -- Lista de habitaciones y cantidad maxima de huspedes
+    reservaporhabitacionAux listaHabHues res listaHabCanHab 0 fIngreso fSalida listareservasporfecha []
+
+reservaporhabitacionAux::[String]->[String]->[String]->Int->[String]->[String]->[String]->[String]->IO()
+reservaporhabitacionAux [] res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas = validarHuespedes cantHuesp res fIngreso fSalida listareservasporfecha habitacionesReservadas--xd res es la suma de huespedes total
+reservaporhabitacionAux listaHabHues res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas = do
+    let nombre = head listaHabHues --nombre de habitacion
+    let tl = tail listaHabHues 
+    let tlCanHabSinNombre = tail listaHabCanHab --cortamos la lista de las cantidades de habitaciones totales del hotel
+    let totalHabs = head tlCanHabSinNombre -- tomamos la cantidad máxima de la habitacion del hotel
+    let sigTotHab = tail tlCanHabSinNombre -- Siguientes habitaciones totales
+    let totalHabitaciones = read totalHabs::Int --tomamos la cantidad máxima de la habitacion del hotel en Int
+    let cantHues = head tl -- cantidad maxima de huespedes de habitacion en string
+    let cantidadHuespedes = read cantHues::Int -- cantidad maxima de huespedes de habitacion en int
+    let tl1 = tail tl  --lista de habitaciones y cantidades cortada 
+    let cantidadHabitacionesReservadasFecha = listaRangoFecha nombre fIngreso fSalida listareservasporfecha --numero de habitaciones reservadas para esta fecha
+    let habitacionesDisponibes = totalHabitaciones - cantidadHabitacionesReservadasFecha --habitaciones disponibles para reservar
+    putStrLn ("Cantidad de habitaciones " ++ nombre ++ " a reservar: ")
+    pCantTipoH <- getLine
+    let pCantTipoH2 = read pCantTipoH::Int --conversion de string a int
+    putStrLn ("Cantidad de adultos por habitación " ++ nombre ++ ": ")
+    pCantAdTipoH <- getLine
+    let pCantAdTipoH2 = read pCantAdTipoH::Int --conversion de string a int
+    putStrLn ("Cantidad de niños por habitación " ++ nombre ++ ": ")
+    pCantNiTipoH <- getLine
+    let listaReservaciones = habitacionesReservadas++[nombre]++[pCantTipoH]++[pCantAdTipoH]++[pCantNiTipoH] 
+    let pCantNiTipoH2 = read pCantNiTipoH::Int --conversion de string a int
+    let pSuma = (pCantAdTipoH2 + pCantNiTipoH2)*pCantTipoH2 --suma de huespedes multiplicado por la cantidad de habitaciones
+    let res2 = cantHuesp+pSuma  --Cantidad de huespedes totales de momento
+    let res3 = res++[nombre]++[pCantTipoH]++[pCantAdTipoH]++[pCantNiTipoH]  --Resultado con las cantidades de la habitacion habitacion/adultos/niños
+    if pSuma <= cantidadHuespedes*pCantTipoH2 then
+        if habitacionesDisponibes >= pCantTipoH2 then
+            reservaporhabitacionAux tl1 res3 sigTotHab res2 fIngreso fSalida listareservasporfecha listaReservaciones 
+        else
+            errorHabitaciones listaHabHues res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas
+    else
+        errorSumaCantidad listaHabHues res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas
+        
+identificadorReserva::String->String
+identificadorReserva strID = do
+    let idF = "R"++strID
+    idF
+
+validarHuespedes::Int->[String]->[String]->[String]->[String]->[String]->IO()
+validarHuespedes cantHuesp resultado fIngreso fSalida listareservasporfecha habitacionesReservadas = do
+    let listasinFechas = cortarLista resultado 1 0
+    let strCantAd = head listasinFechas
+    let intCantAd = read strCantAd::Int
+    let tl = tail listasinFechas
+    let strCantNi = head tl
+    let intCantNi = read strCantNi::Int 
+    let sumaCant = intCantAd+intCantNi
+    if sumaCant == cantHuesp then
+        mostrarReservacionCorrecta resultado fIngreso fSalida listareservasporfecha habitacionesReservadas
+    else
+        errorCantHuespedes
+
+mostrarReservacionCorrecta::[String]->[String]->[String]->[String]->[String]->IO()
+mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReservaciones = do
+    lista <- leerArchivo "codigoReservacion.txt"
+    let strID = head lista
+    let idReserva = identificadorReserva strID
+    let intID = read strID::Int
+    let intIDNew = intID + 1
+    let strIDNew = show intIDNew
+    let listaNombre = cortarLista res 3 0 
+    let nombre = head listaNombre
+    let fechaI = head res
+    let listasinFI = tail res
+    let fechaS = head listasinFI
+    let listasinFechas = tail listasinFI
+    let cantAd = head listasinFechas
+    let listasinFechasCAdultos = tail listasinFechas
+    let cantNi = head listasinFechasCAdultos
+    fechaActual <- fecha
+    sobreEscribir "codigoReservacion.txt" strIDNew
+    putStrLn "\n ******************** Factura ******************** \n"
+    --String con informacion del hotel
+    putStrLn ("\nId Reservacion: " ++ idReserva ++ "\n")
+    putStrLn ("Nombre de la persona que reserva: " ++ nombre ++ "\n")
+    putStrLn ("Fecha en la que se realizo la reservacion: " ++ fechaActual ++" \n")
+    putStrLn ("Fecha de ingreso: " ++ fechaI ++ " \n")
+    putStrLn ("Fecha de salida: " ++ fechaS ++ " \n")
+    putStrLn ("Cantidad de adultos: " ++ cantAd ++ " \n")
+    putStrLn ("Cantida de ninos: " ++ cantNi ++ " \n")
+    --mostrarTotal
+    appendFile "reservaciones.txt" (idReserva++ "\n")
+    appendFile "reservaciones.txt" (nombre++ "\n")
+    appendFile "reservaciones.txt" (fechaActual++ "\n")
+    appendFile "reservaciones.txt" (fechaI++ "\n")
+    appendFile "reservaciones.txt" (fechaS++ "\n")
+    appendFile "reservaciones.txt" (cantAd++ "\n")
+    appendFile "reservaciones.txt" (cantNi ++ "\n")
+    appendFile "reservaciones.txt" ("Activa" ++ "\n")
+    --añadir total
+    mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha listaReservaciones idReserva
+
+    
+mostrarHabitacionesReservadas::[String]->[String]->[String]->[String]->[String]->String->IO()
+mostrarHabitacionesReservadas  res fIngreso fSalida listareservasporfecha [] id = terminarReservacion
+mostrarHabitacionesReservadas  res fIngreso fSalida listareservasporfecha listaReservaciones id= do
+    let nombre = head listaReservaciones--
+    let listaCant = tail listaReservaciones
+    let cant = head listaCant --
+    let cantINT = read cant::Int --
+    let listaAD = tail listaCant
+    let cantAd = head listaAD
+    let listaNI = tail listaAD
+    let cantNi = head listaNI
+    let sigLista = cortarLista listaReservaciones 3 0 
+    if cantINT == 0 then
+        mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha sigLista id
+    else
+        mostrarHabitacionesReservadasAux res fIngreso fSalida listareservasporfecha sigLista nombre cantINT cantAd cantNi id
+
+mostrarHabitacionesReservadasAux::[String]->[String]->[String]->[String]->[String]->String->Int->String->String->String->IO()
+mostrarHabitacionesReservadasAux res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos id= do
+    let cantidadHabitacionesReservadasFecha = listaRangoFecha nombre fIngreso fSalida listareservasporfecha --numero de habitaciones reservadas para esta fecha
+    appendFile "reservacionesporFecha.txt" (head fIngreso ++"\n" ) --dia Ingreso
+    appendFile "reservacionesporFecha.txt" (head (tail fIngreso)++"\n") -- mes Ingreso
+    appendFile "reservacionesporFecha.txt" (head (tail (tail fIngreso))++"\n") --año Ingreso
+    appendFile "reservacionesporFecha.txt" (head fSalida ++"\n")  --dia Salida
+    appendFile "reservacionesporFecha.txt" (head (tail fSalida)++"\n") -- mes Salida
+    appendFile "reservacionesporFecha.txt" (head (tail (tail fSalida))++"\n") --año Salida
+    appendFile "reservacionesporFecha.txt" (nombre++"\n") --nombre
+    appendFile "reservacionesporFecha.txt" (show cantidadINT++"\n") --nombre
+    mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos cantidadHabitacionesReservadasFecha id
+
+mostrarHabitacionesReservadasAux2::[String]->[String]->[String]->[String]->[String]->String->Int->String->String->Int->String->IO()
+mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre 0 adultos ninos num id = mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha listaReservaciones id
+mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos num id = do
+    let idHabitacion = nombre++show num
+    let habitacion = "Habitacion id: " ++ idHabitacion ++" tipo: "++nombre++" "++"Cantidad de adultos: " ++ adultos ++" "++"Cantidad de ninos: " ++ ninos
+    putStrLn habitacion
+    appendFile "habitacionesReservadas.txt" (id++"\n")
+    appendFile "habitacionesReservadas.txt" (habitacion++ "\n")
+    mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre (cantidadINT-1) adultos ninos (num+1) id
+    
+
+errorCantHuespedes::IO()
+errorCantHuespedes = do
+    putStrLn "La cantidad de huespedes indicada al inicio no coincide con la cantidad total"
+    reserver
+
+errorSumaCantidad::[String]->[String]->[String]->Int->[String]->[String]->[String]->[String]->IO()
+errorSumaCantidad  listaHabHues res listaHabCanHab cantHues fIngreso fSalida listareservasporfecha habitacionesReservadas = do
+    putStrLn "Error la cantidad de huespedes supera el limite de las habitaciones\n"
+    reservaporhabitacionAux listaHabHues res listaHabCanHab cantHues fIngreso fSalida listareservasporfecha habitacionesReservadas
+
+--listaRangoFecha
+--Objetivo: Sacar la cantidad de habitaciones de un tipo en un determinado rango de fechas
+--Entrada: 1 String nombre del tipo, 3 lista de Strings la lista de las reservaciones por fecha, las fechas de ingreso y de salida 
+--Restricciones: que las entradas sean String, 3 listas de strings
+
+listaRangoFecha::String->[String]->[String]->[String]->Int
+listaRangoFecha pHabitacion fIngreso fSalida listaFechas = do
+    let diaI = head fIngreso
+    let diaF = head fSalida
+    let diaIni = read diaI::Int
+    let diaFin = read diaF::Int
+    let fIngreso2 = tail fIngreso
+    let mesI = head fIngreso2
+    let mesIni = read mesI::Int
+    listaRangoFechaAux pHabitacion listaFechas 0 diaIni diaFin mesIni 
+
+--listaRangoFechaAux
+--Objetivo: Sacar la cantidad de habitaciones de un tipo en un determinado rango de fechas
+--Entrada: 1 String nombre del tipo, Una lista de Strings la lista de las reservaciones por fechas
+-- 4 enteros, donde estará el resultado y se suman las habitaciones que coincidan con el rango, el dia de ingreso y de salida y mes  
+--Salida: un numero con la cantidad de habitaciones reservadas en una fecha
+--Restricciones: que las entradas sean String, listas de strings y 4 enteros
+
+listaRangoFechaAux::String->[String]->Int->Int->Int->Int->Int
+listaRangoFechaAux pHabitacion [] res diaIni diaFin mesIni= res
+listaRangoFechaAux pHabitacion lista res diaIni diaFin mesIni  = do
+    let hd = head lista
+    let dia1 = read hd::Int
+    let tl = tail lista
+    let hd2 = head tl
+    let mes1 = read hd2::Int 
+    let habitaciones = cortarLista lista 5 0
+    let sig = cortarLista lista 7 0
+    let habitacion = head habitaciones
+    let cant0 = tail habitaciones
+    let cant1 = head cant0
+    let cant2 = read cant1::Int
+    let res2 = res+cant2
+    if dia1 >= diaIni && dia1 <= diaFin && pHabitacion == habitacion && mes1 == mesIni then
+        listaRangoFechaAux pHabitacion sig res2 diaIni diaFin mesIni 
+    else
+         listaRangoFechaAux pHabitacion sig res diaIni diaFin mesIni 
+
+--listaHabitacionesAux2
+--Objetivo: sacar cada 1 elemento de una lista en este caso los nombres y cantidades, solo crea una lista de nombres de habitaciones
+--Entrada: 2 listas una será el resultado y la otra es la lista de tipos de habitaciones con nombre, descripcion y cantidades
+--Salida: una lista con solo los nombres y cantidades maximas de huespedes de las habitaciones
+--Restricciones: que las entradas sean listas de strings
+
+listaHabitacionesAux2:: [String]->[String]->[String]
+listaHabitacionesAux2 [] res = res
+listaHabitacionesAux2 lista res = do
+    let hd = head lista
+    let tl = tail lista
+    let tl1 = tail tl
+    let tl2 = tail tl1
+    let res2 = res++[hd]++[head tl1]
+    listaHabitacionesAux2 tl2 res2
+
+--errorHabitaciones
+--Objetivo: muestra un error en pantalla y vuelve a las reservaciones por habitación
+--Salida: --
+--Restricciones: que las entradas sean 7 listas de strings y 1 entero
+
+errorHabitaciones::[String]->[String]->[String]->Int->[String]->[String]->[String]->[String]->IO()
+errorHabitaciones  listaHabHues res listaHabCanHab cantHues fIngreso fSalida listareservasporfecha habitacionesReservadas = do
+    putStrLn "Cantidad de habitaciones insuficiente para esta fecha.\n"
+    reservaporhabitacionAux listaHabHues res listaHabCanHab cantHues fIngreso fSalida listareservasporfecha habitacionesReservadas
+
+--fechaInvalida
+--Objetivo: muestra un error en pantalla y vuelve a las reservaciones 
+--Salida: --
+--Restricciones: --
+
+fechaInvalida ::IO ()
+fechaInvalida = do
+        putStrLn "La fecha fue incorrecta"
+        reserver
+        
+--terminarReservacion
+--Objetivo: muestra en pantalla un mensaje de exitoso y vuelve al menu de opciones de usuario 
+--Salida: --
+--Restricciones: --
+
+terminarReservacion:: IO()
+terminarReservacion = do
+    putStrLn "\n  +++++++++++++++++++++++++++++++++++\n++++++++++Reservacion Exitosa!!++++++++\n  +++++++++++++++++++++++++++++++++++\n"
+    menuOpcionesUsuario
+---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
 main = do
     putStrLn "\t1.Opcione Administrativas.\n\t2.Opciones de Usuario Normal.\n\t3.Salir\n >>>Indique:"
@@ -261,6 +586,8 @@ menuOpcionesUsuario = do
     putStrLn "\t1.Reservacion\n\t2.Cancelar Reservacion\n\t3.Facturar Reservacion\n\t4.Salir\n >>>Indique:"
     name <- getLine
     case name of
+        "1" -> reserver
         "4" -> main
         _ -> menuOpcionesUsuario
+
 
