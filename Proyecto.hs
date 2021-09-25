@@ -8,11 +8,56 @@ import Data.Array (listArray)
 import System.Console.Haskeline (Interrupt(Interrupt))
 type FilePath = String
 
+------------------------------------------------Informacion del Hotel------------------------------------------------------------------
+--mostrarInfoHotel
+--Objetivo: Se encarga de leer el archivo de info del hotel y mostrarla
+--Entrada: --
+--Salida: --
+--Restricciones: --
+mostrarInfoHotel:: IO()
+mostrarInfoHotel = do
+    lista <- leerArchivo "infoHotel.txt"
+    let nombreHotel = head lista
+    let tl = tail lista
+    let cedulaJuridica = head tl
+    let tl2 = tail tl
+    let correo = head tl2
+    let tl3 = tail tl2
+    let telefono = head tl3
+    let tl4 = tail tl3
+    let pais = head tl4
+    let tl5 = tail tl4
+    let provincia = head tl5
+    let mensaje = ("El nombre del hotel es " ++nombreHotel++ "\nLa cedula Juridica es "++cedulaJuridica++"\nEl correo es "++correo++"\nEl telefono es "++telefono++"\nEl pais es "++pais++"\nLa provincia es "++provincia++"\n")
+    putStrLn mensaje
+    menuAdministrativo
+
+--infoHotel
+--Objetivo: Se encarga de retornar la info del hotel
+--Entrada: Una lista de Strings
+--Salida: Un String
+--Restricciones: --
+infoHotel::[String]-> String
+infoHotel lista = do
+    let nombreHotel = head lista
+    let tl = tail lista
+    let cedulaJuridica = head tl
+    let tl2 = tail tl
+    let correo = head tl2
+    let tl3 = tail tl2
+    let telefono = head tl3
+    let tl4 = tail tl3
+    let pais = head tl4
+    let tl5 = tail tl4
+    let provincia = head tl5
+    let mensaje = ("Nombre del hotel: " ++nombreHotel++ "\nCedula Juridica: "++cedulaJuridica++"\nCorreo electronico: "++correo++"\nTelefono: "++telefono++"\nPais: "++pais++"\nProvincia: "++provincia++"\n")
+    mensaje
 
 --Objetivo: Crea fecha y hora actual
 --Entrada: --
 --Salida: Fecha y hora 
 --Restricciones: --
+
 fecha :: IO String
 fecha = do
             zC<-getCurrentTimeZone
@@ -46,6 +91,11 @@ intToStr  int = do
                     let x = show int
                     return x
 
+--sobreEscribir
+--Objetivo: Sobreescribir el archivo 
+--Entrada: La ruta del archivo y un String
+--Salida: --
+--Restricciones: Que la ruta sea un txt
 sobreEscribir :: System.IO.FilePath -> String -> IO ()
 sobreEscribir archivo algo = do
     writeFile archivo (algo)
@@ -384,6 +434,8 @@ validarHuespedes cantHuesp resultado fIngreso fSalida listareservasporfecha habi
 mostrarReservacionCorrecta::[String]->[String]->[String]->[String]->[String]->IO()
 mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReservaciones = do
     lista <- leerArchivo "codigoReservacion.txt"
+    lista1 <- leerArchivo "infoHotel.txt"
+    let hotelInfo = infoHotel lista1
     let strID = head lista
     let idReserva = identificadorReserva strID
     let intID = read strID::Int
@@ -401,7 +453,7 @@ mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReser
     fechaActual <- fecha
     sobreEscribir "codigoReservacion.txt" strIDNew
     putStrLn "\n ******************** Factura ******************** \n"
-    --String con informacion del hotel
+    putStrLn hotelInfo
     putStrLn ("\nId Reservacion: " ++ idReserva ++ "\n")
     putStrLn ("Nombre de la persona que reserva: " ++ nombre ++ "\n")
     putStrLn ("Fecha en la que se realizo la reservacion: " ++ fechaActual ++" \n")
@@ -561,6 +613,39 @@ terminarReservacion:: IO()
 terminarReservacion = do
     putStrLn "\n  +++++++++++++++++++++++++++++++++++\n++++++++++Reservacion Exitosa!!++++++++\n  +++++++++++++++++++++++++++++++++++\n"
     menuOpcionesUsuario
+
+---------------------------------------------Cargar Tarifa--------------------------------------------------------------
+
+-- cargarTarifa
+--Objetivo: cargar el archivo txt de habitaciones y transformalo en una lista con solo los nombres de las habitaciones, reseta el
+--          el archivo txt de Tarifas cada vez que se utilice esta opcion.
+--Entrada: --
+--Salida: --
+--Restricciones: --
+
+cargarTarifa::IO()
+cargarTarifa = do
+    sobreEscribir "Tarifas.txt" ""
+    lista0 <- leerArchivo"habitaciones.txt"
+    let lista1 = listaHabitacionesAux lista0 []
+    cargarTarifaAux lista1
+
+-- cargarTarifaAux
+--Objetivo: Se encarga de pedir el precio de tarifa por cada tipo de habitacion al usuario y agregarlo a un archivo txt
+--Entrada: Una lista de String
+--Salida: --
+--Restricciones: --
+cargarTarifaAux ::[String]->IO()
+cargarTarifaAux [] = menuAdministrativo 
+cargarTarifaAux lista = do
+    let hd = head lista
+    let tl = tail lista
+    let mensaje = ("Para la habitacion de tipo " ++ hd ++ " Digite el precio de la habitacion: \n")
+    putStrLn mensaje
+    precio <- getLine
+    appendFile "Tarifas.txt" (hd ++ "\n" ++ precio ++ "\n")
+    cargarTarifaAux tl
+
 ---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
 main = do
@@ -576,8 +661,10 @@ menuAdministrativo = do
     putStrLn "\t1.Informacion de Hotel\n\t2.Cargar Tipo de Habitaciones\n\t3.Asignar cantidad de habitaciones por tipo\n\t4.Cargar Tarifas\n\t5.Consultar reservaciones\n\t6.Consultar Facturas\n\t7.Estadisticas de Ocupacion\n\t8.Volver\n >>>Indique:"
     name <- getLine
     case name of
+        "1" -> mostrarInfoHotel
         "2" -> cargarHabitaciones
         "3" -> listaHabitaciones
+        "4" -> cargarTarifa
         "8" -> main
         _ -> menuAdministrativo
 

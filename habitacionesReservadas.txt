@@ -16,3 +16,7 @@ R9
 Habitacion id: Pequeña swite0 tipo: Pequeña swite Cantidad de adultos: 1 Cantidad de ninos: 0
 R9
 Habitacion id: Grande Swite0 tipo: Grande Swite Cantidad de adultos: 2 Cantidad de ninos: 0
+R10
+Habitacion id: Personal0 tipo: Personal Cantidad de adultos: 1 Cantidad de ninos: 0
+R10
+Habitacion id: Personal1 tipo: Personal Cantidad de adultos: 1 Cantidad de ninos: 0
