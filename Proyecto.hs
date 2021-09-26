@@ -646,6 +646,114 @@ cargarTarifaAux lista = do
     appendFile "Tarifas.txt" (hd ++ "\n" ++ precio ++ "\n")
     cargarTarifaAux tl
 
+--------------------------------------------------------------Cancelar Reservacion--------------------------------------------------------------------------
+--cancelarReservacion
+--Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista ademas de limpiar el txt de reservaciones y pedir el ID a cancelar
+--Entrada: --
+--Salida: --
+--Restricciones: --
+cancelarReservacion::IO()
+cancelarReservacion = do
+    lista <-leerArchivo "reservaciones.txt"
+    sobreEscribir "reservaciones.txt" ""
+    putStrLn "Digite el identificador a borrar: \n"
+    identificador <- getLine
+    cancelarReservacionAux lista identificador
+
+--cancelarReservacionAux
+--Objetivo: Se encarga de cancelar una reservacion cambiando su estado en cancelado
+--Entrada: Una lista de String y un String
+--Salida: --
+--Restricciones: --
+cancelarReservacionAux:: [String]->String->IO()
+cancelarReservacionAux [] idReser = menuOpcionesUsuario
+cancelarReservacionAux lista idReser = do
+    let identificador = head lista
+    let tl = tail lista
+    let nombreReserva = head tl
+    let tl2 = tail tl
+    let fechaReserva = head tl2
+    let tl3 = tail tl2
+    let fechaIngreso = head tl3
+    let tl4 = tail tl3
+    let fechaSalida = head tl4
+    let tl5 = tail tl4
+    let cantAdultos = head tl5
+    let tl6 = tail tl5
+    let cantNinos = head tl6
+    let tl7 = tail tl6
+    let estado = head tl7
+    let tl8 = tail tl7
+    if (identificador == idReser) then
+        if (estado == "Activa") then
+            appendFile "reservaciones.txt" (identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ "Cancelado" ++ "\n")
+        else
+            putStrLn ("La reserva solicitada no esta en estado Activa")
+    else
+        appendFile "reservaciones.txt" (identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ estado ++ "\n") 
+    
+    cancelarReservacionAux tl8 idReser
+
+-----------------------------------------------------------Consultar Historial de reservaciones-------------------------------------------------------------
+--mostrarHistorialReservaciones
+--Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista
+--Entrada: --
+--Salida: --
+--Restricciones: --
+mostrarHistorialReservaciones:: IO()
+mostrarHistorialReservaciones = do
+    listaReservacion <- leerArchivo "reservaciones.txt"
+    mostrarHistorialReservacionesAux listaReservacion
+
+--mostrarHistorialReservacionesAux
+--Objetivo: Se encarga de mostrar el detalle de la reservacion
+--Entrada: Una lista de String
+--Salida: --
+--Restricciones: --
+mostrarHistorialReservacionesAux:: [String]->IO()
+mostrarHistorialReservacionesAux [] = menuAdministrativo
+mostrarHistorialReservacionesAux lista = do
+    listaHabitacion <- leerArchivo "habitacionesReservadas.txt"
+    let identificador = head lista
+    let tl = tail lista
+    let nombreReserva = head tl
+    let tl2 = tail tl
+    let fechaReserva = head tl2
+    let tl3 = tail tl2
+    let fechaIngreso = head tl3
+    let tl4 = tail tl3
+    let fechaSalida = head tl4
+    let tl5 = tail tl4
+    let cantAdultos = head tl5
+    let tl6 = tail tl5
+    let cantNinos = head tl6
+    let tl7 = tail tl6
+    let estado = head tl7
+    let tl8 = tail tl7
+    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ estado ++ "\n"
+    putStrLn mensaje
+    mostrarHistorialReservacionesAux2 listaHabitacion identificador
+    mostrarHistorialReservacionesAux tl8
+
+--mostrarHistorialReservacionesAux2
+--Objetivo: Se encarga de mostrar el detalle de las habitaciones reservadas con el identificador de reserva
+--Entrada: Una lista de String un String
+--Salida: --
+--Restricciones: --
+mostrarHistorialReservacionesAux2::[String]->String->IO()
+mostrarHistorialReservacionesAux2 [] ident = putStrLn "---------------------------------------------------------------"
+mostrarHistorialReservacionesAux2 lista ident = do
+    let idReservacion = head lista
+    let tl = tail lista
+    let info = head tl
+    let tl2 = tail tl
+    if(ident == idReservacion)then
+        putStrLn info
+    else
+        putStrLn ""
+    mostrarHistorialReservacionesAux2 tl2 ident
+
+
 ---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
 main = do
@@ -654,6 +762,7 @@ main = do
     case name of
         "1"  -> menuAdministrativo
         "2" -> menuOpcionesUsuario
+        "3" -> return()
         _ -> main
 
 menuAdministrativo :: IO ()
@@ -665,6 +774,7 @@ menuAdministrativo = do
         "2" -> cargarHabitaciones
         "3" -> listaHabitaciones
         "4" -> cargarTarifa
+        "5" -> mostrarHistorialReservaciones
         "8" -> main
         _ -> menuAdministrativo
 
@@ -674,7 +784,6 @@ menuOpcionesUsuario = do
     name <- getLine
     case name of
         "1" -> reserver
+        "2" -> cancelarReservacion
         "4" -> main
         _ -> menuOpcionesUsuario
-
-
