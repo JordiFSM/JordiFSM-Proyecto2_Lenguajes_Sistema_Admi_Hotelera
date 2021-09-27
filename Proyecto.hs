@@ -133,6 +133,13 @@ estaLista nombre lista = do
 
 --------------------------------------------Tipos Habitaciones --------------------------------------------------------
 
+--listaSinRepetidos
+--Objetivo: tomar la lista de un archivo y guardar las terceras posiciones diferentes, es para guardar las habitaciones
+-- cargadas desde el archivo, solo las que no están con nombres iguales
+--Entrada: 2 listas, la lista del archivo y el resultado a devolver
+--Salida: una lista de habitaciones sin repetir
+--Restricciones: que las 2 entradas sean listas de strings
+
 listaSinRepetidos :: [String] -> [String] -> Int ->[String]
 listaSinRepetidos [] res opcion = res
 listaSinRepetidos lista res opcion = do
@@ -149,6 +156,12 @@ listaSinRepetidos lista res opcion = do
     else
         listaSinRepetidos tl res2 opcion1)
 
+--escribirArchivoHabitaciones
+--Objetivo: Escribir los strings de una lista de strings en el archivo entrante hasta que esté vacia
+--Entrada: 1 path y una lista de strings
+--Salida: --
+--Restricciones: que las entradas sean un path de archivo y una lista de strings
+
 escribirArchivoHabitaciones :: System.IO.FilePath->[String]->IO ()
 escribirArchivoHabitaciones archivo [] = menuAdministrativo
 escribirArchivoHabitaciones archivo lista = do
@@ -156,6 +169,12 @@ escribirArchivoHabitaciones archivo lista = do
     let tl = tail lista
     appendFile archivo (hd ++ "\n")
     escribirArchivoHabitaciones archivo tl
+
+--cargarHabitaciones
+--Objetivo: leer los archivos de habitaciones, limpia el de habitaciones, crea la lista de habitaciones sin repetir y las guarda nuevamente
+--Entrada: --
+--Salida: --
+--Restricciones: --
 
 cargarHabitaciones:: IO()
 cargarHabitaciones = do
@@ -307,6 +326,13 @@ printearCantidadesHabitacionesAux lista1 lista2 = do
     printProximos tl3 cantidad 0 lista2
    
 --------------------------------------Reservación--------------------------------------------------------------------------------
+
+--verificarFecha
+--Objetivo: Validar una fecha
+--Entrada: 6 Strings los cuales son dia mes año de ingreso y salida, los cambia de string a entero y valida que sean coherentes
+--Salida: bool
+--Restricciones: que las entradas sean 6 strings de numeros
+
 verificarFecha::String->String->String->String->String->String->Bool
 verificarFecha dia1 mes1 anio1 dia2 mes2 anio2 = do
   let anioIngreso = read anio1::Int
@@ -332,6 +358,11 @@ verificarFecha dia1 mes1 anio1 dia2 mes2 anio2 = do
     else
       False
 
+--reserver
+--Objetivo: Obtener todos los datos necesarios para una reservacion
+--Entrada: --
+--Salida: --
+--Restricciones: --
 
 reserver::IO()
 reserver = do
@@ -367,7 +398,13 @@ reserver = do
     else    
         fechaInvalida 
     
-
+--reservaporhabitacion
+--Objetivo: Crea 1 lista con las cantidades de huespedes maximos por habitacion y los tipos de habitaciones
+-- otra lista con las reservaciones por fecha para validar la dispomnibilidad de los tipos de habitaciones
+-- y otra con las habitaciones y la cantidad de habitaciones por tipo en el hotel para pasarlas a las siguientes funciones
+--Entrada: 3 listas de strings la lista que tendra todos los resultados de los datos que se reservarán, listas de fechas
+--Salida: --
+--Restricciones: que los 3 parametros sean 3 listas de strings
 
 reservaporhabitacion::[String]->[String]->[String]->IO()
 reservaporhabitacion res fIngreso fSalida = do
@@ -376,6 +413,13 @@ reservaporhabitacion res fIngreso fSalida = do
     listareservasporfecha <- leerArchivo"reservacionesporFecha.txt" --lista de las reservaciones por fechas
     let listaHabHues = listaHabitacionesAux2 lista0 [] -- Lista de habitaciones y cantidad maxima de huspedes
     reservaporhabitacionAux listaHabHues res listaHabCanHab 0 fIngreso fSalida listareservasporfecha []
+
+--reservaporhabitacionAux
+--Objetivo: Obtener los datos de las cantidades de habitaciones a reservar por sus tipos, asi como las cantidades de adultos y niños, la funcion verifica la disponibilidad de las habitaciones.
+--Entrada: 3 listas de strings, resultados, fechas, 1 entero que es la cantidad de huespedes total, debera coincidir con los huespedes
+-- indicados al inicio, las listas creadas en la anterior funcion y una lista que contendrá las habitaciones resevadas, las cantidades y las cantidades de niños y adultos.
+--Salida: --
+--Restricciones: que las entradas sean 7 listas de strings y 1 entero
 
 reservaporhabitacionAux::[String]->[String]->[String]->Int->[String]->[String]->[String]->[String]->IO()
 reservaporhabitacionAux [] res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas = validarHuespedes cantHuesp res fIngreso fSalida listareservasporfecha habitacionesReservadas--xd res es la suma de huespedes total
@@ -412,10 +456,20 @@ reservaporhabitacionAux listaHabHues res listaHabCanHab cantHuesp fIngreso fSali
     else
         errorSumaCantidad listaHabHues res listaHabCanHab cantHuesp fIngreso fSalida listareservasporfecha habitacionesReservadas
         
+--identificadorReserva
+--Objetivo: crear el identificador de las reservaciones
+--Entrada:  1 String
+--Restricciones: que la entrada sea 1 lista de strings
+
 identificadorReserva::String->String
 identificadorReserva strID = do
     let idF = "R"++strID
     idF
+
+--validarHuespedes
+--Objetivo: verificar que la cantidad de huespedes indicada al inicio, coincida con la cantidad de huespedes final
+--Entrada:  5 listas de strings necesarias para seguir con las funciones de reservaciones y 1 entero que es la que hay que validar
+--Restricciones: que las entradas sean 1 entero y 5 strings
 
 validarHuespedes::Int->[String]->[String]->[String]->[String]->[String]->IO()
 validarHuespedes cantHuesp resultado fIngreso fSalida listareservasporfecha habitacionesReservadas = do
@@ -431,14 +485,22 @@ validarHuespedes cantHuesp resultado fIngreso fSalida listareservasporfecha habi
     else
         errorCantHuespedes
 
+--mostrarReservacionCorrecta
+--Objetivo: mostrar los datos de la reservacion concluida, así como de guardar los datos en los archivos correspondientes
+--Entrada:  5 listas de strings necesarias para mostrar los datos de una reservacion correcta.
+--Restricciones: que las entradas sean 5 listas de strings
+
 mostrarReservacionCorrecta::[String]->[String]->[String]->[String]->[String]->IO()
 mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReservaciones = do
     lista <- leerArchivo "codigoReservacion.txt"
     lista1 <- leerArchivo "infoHotel.txt"
+    lista2 <- leerArchivo "Tarifas.txt"
     let hotelInfo = infoHotel lista1
     let strID = head lista
     let idReserva = identificadorReserva strID
     let intID = read strID::Int
+    let intTotal =  calcularTotal listaReservaciones lista2 0
+    let strTotal = show intTotal
     let intIDNew = intID + 1
     let strIDNew = show intIDNew
     let listaNombre = cortarLista res 3 0 
@@ -461,7 +523,7 @@ mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReser
     putStrLn ("Fecha de salida: " ++ fechaS ++ " \n")
     putStrLn ("Cantidad de adultos: " ++ cantAd ++ " \n")
     putStrLn ("Cantida de ninos: " ++ cantNi ++ " \n")
-    --mostrarTotal
+    putStrLn ("Total:  " ++ strTotal ++ " \n")
     appendFile "reservaciones.txt" (idReserva++ "\n")
     appendFile "reservaciones.txt" (nombre++ "\n")
     appendFile "reservaciones.txt" (fechaActual++ "\n")
@@ -470,14 +532,37 @@ mostrarReservacionCorrecta res fIngreso fSalida listareservasporfecha listaReser
     appendFile "reservaciones.txt" (cantAd++ "\n")
     appendFile "reservaciones.txt" (cantNi ++ "\n")
     appendFile "reservaciones.txt" ("Activa" ++ "\n")
-    --añadir total
+    appendFile "reservaciones.txt" (strTotal ++ "\n")
     mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha listaReservaciones idReserva
 
+--calcularTotal
+--Objetivo: calcular los precios de las habitaciones
+--Entrada: la lista de las habitaciones del hotel con sus tarifas y la lista de las reservaciones como la variable resultadoque es un entero
+--Restricciones: que las entradas sean 2 listas de strings y 1 entero
+
+calcularTotal::[String]->[String]->Int->Int
+calcularTotal [] listaTarifas suma = suma
+calcularTotal listaReservadas listaTarifas suma = do
+    let habitacionReservada = head listaReservadas
+    let habitacionTarifa = head listaTarifas
+    let cantidadReservadas = read (head(tail listaReservadas))::Int
+    let cantidadTarifa = read (head(tail listaTarifas))::Int
+    let suma2 = suma+(cantidadReservadas * cantidadTarifa)
+    if habitacionReservada == habitacionTarifa then
+        calcularTotal (cortarLista listaReservadas 3 0) (cortarLista listaTarifas 1 0) suma2
+    else
+        calcularTotal listaReservadas (cortarLista listaTarifas 1 0) suma
+
+--mostrarHabitacionesReservadas
+--Objetivo: verificar que las cantidades de las habitaciones sean mayor a 0 para imprimirlas
+--Entrada: 5 listas de strings necesarias para mostrar los datos de una reservacion correcta y 1 string que es el id de la reservacion.
+--Restricciones: que las entradas sean 5 listas de strings y 1 string
     
+
 mostrarHabitacionesReservadas::[String]->[String]->[String]->[String]->[String]->String->IO()
 mostrarHabitacionesReservadas  res fIngreso fSalida listareservasporfecha [] id = terminarReservacion
 mostrarHabitacionesReservadas  res fIngreso fSalida listareservasporfecha listaReservaciones id= do
-    let nombre = head listaReservaciones--
+    let nombre = head listaReservaciones 
     let listaCant = tail listaReservaciones
     let cant = head listaCant --
     let cantINT = read cant::Int --
@@ -490,6 +575,11 @@ mostrarHabitacionesReservadas  res fIngreso fSalida listareservasporfecha listaR
         mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha sigLista id
     else
         mostrarHabitacionesReservadasAux res fIngreso fSalida listareservasporfecha sigLista nombre cantINT cantAd cantNi id
+
+--mostrarHabitacionesReservadasAux
+--Objetivo: Guarda las reservaciones de las habitaciones por fecha en el archivo correspondiente
+--Entrada: 5 listas de strings necesarias para mostrar los datos de una reservacion correcta y 4 strings que es el id de la reservacion los datos a guardar y 1 int.
+--Restricciones: que las entradas sean 5 listas de strings, 4 string  y 1 entero
 
 mostrarHabitacionesReservadasAux::[String]->[String]->[String]->[String]->[String]->String->Int->String->String->String->IO()
 mostrarHabitacionesReservadasAux res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos id= do
@@ -504,6 +594,11 @@ mostrarHabitacionesReservadasAux res fIngreso fSalida listareservasporfecha list
     appendFile "reservacionesporFecha.txt" (show cantidadINT++"\n") --nombre
     mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos cantidadHabitacionesReservadasFecha id
 
+--mostrarHabitacionesReservadasAux2
+--Objetivo: muestra las habitaciones reservadas con los identificadores y guarda las habitaciones en el archivo.
+--Entrada: 5 listas de strings necesarias para mostrar los datos de una reservacion correcta y 4 strings que es el id de la reservacion los datos a guardar y 2 int.
+--Restricciones: que las entradas sean 5 listas de strings, 4 string  y 2 entero
+
 mostrarHabitacionesReservadasAux2::[String]->[String]->[String]->[String]->[String]->String->Int->String->String->Int->String->IO()
 mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre 0 adultos ninos num id = mostrarHabitacionesReservadas res fIngreso fSalida listareservasporfecha listaReservaciones id
 mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre cantidadINT adultos ninos num id = do
@@ -514,11 +609,20 @@ mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha lis
     appendFile "habitacionesReservadas.txt" (habitacion++ "\n")
     mostrarHabitacionesReservadasAux2 res fIngreso fSalida listareservasporfecha listaReservaciones nombre (cantidadINT-1) adultos ninos (num+1) id
     
+--errorCantHuespedes
+--Objetivo: muestra un error de verificacion y envia al usuario a reservaciones.
+--Entrada: --
+--Restricciones: --
 
 errorCantHuespedes::IO()
 errorCantHuespedes = do
     putStrLn "La cantidad de huespedes indicada al inicio no coincide con la cantidad total"
     reserver
+
+--errorSumaCantidad
+--Objetivo: Mostrar un error y seguir reservando
+--Entrada: 7 listas de strings, que guardan los datos de la reservacion hasta el momento
+--Restricciones: que hayan 7 listas de strings y 1 entero
 
 errorSumaCantidad::[String]->[String]->[String]->Int->[String]->[String]->[String]->[String]->IO()
 errorSumaCantidad  listaHabHues res listaHabCanHab cantHues fIngreso fSalida listareservasporfecha habitacionesReservadas = do
@@ -618,7 +722,7 @@ terminarReservacion = do
 
 -- cargarTarifa
 --Objetivo: cargar el archivo txt de habitaciones y transformalo en una lista con solo los nombres de las habitaciones, reseta el
---          el archivo txt de Tarifas cada vez que se utilice esta opcion.
+-- el archivo txt de Tarifas cada vez que se utilice esta opcion.
 --Entrada: --
 --Salida: --
 --Restricciones: --
@@ -635,12 +739,13 @@ cargarTarifa = do
 --Entrada: Una lista de String
 --Salida: --
 --Restricciones: --
+
 cargarTarifaAux ::[String]->IO()
 cargarTarifaAux [] = menuAdministrativo 
 cargarTarifaAux lista = do
     let hd = head lista
     let tl = tail lista
-    let mensaje = ("Para la habitacion de tipo " ++ hd ++ " Digite el precio de la habitacion: \n")
+    let mensaje = "Para la habitacion de tipo " ++ hd ++ " Digite el precio de la habitacion: \n"
     putStrLn mensaje
     precio <- getLine
     appendFile "Tarifas.txt" (hd ++ "\n" ++ precio ++ "\n")
@@ -700,6 +805,7 @@ cancelarReservacionAux lista idReser = do
 --Entrada: --
 --Salida: --
 --Restricciones: --
+
 mostrarHistorialReservaciones:: IO()
 mostrarHistorialReservaciones = do
     listaReservacion <- leerArchivo "reservaciones.txt"
@@ -710,6 +816,7 @@ mostrarHistorialReservaciones = do
 --Entrada: Una lista de String
 --Salida: --
 --Restricciones: --
+
 mostrarHistorialReservacionesAux:: [String]->IO()
 mostrarHistorialReservacionesAux [] = menuAdministrativo
 mostrarHistorialReservacionesAux lista = do
@@ -740,6 +847,7 @@ mostrarHistorialReservacionesAux lista = do
 --Entrada: Una lista de String un String
 --Salida: --
 --Restricciones: --
+
 mostrarHistorialReservacionesAux2::[String]->String->IO()
 mostrarHistorialReservacionesAux2 [] ident = putStrLn "---------------------------------------------------------------"
 mostrarHistorialReservacionesAux2 lista ident = do
@@ -787,3 +895,4 @@ menuOpcionesUsuario = do
         "2" -> cancelarReservacion
         "4" -> main
         _ -> menuOpcionesUsuario
+

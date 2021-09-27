@@ -20,3 +20,11 @@ R10
 Habitacion id: Personal0 tipo: Personal Cantidad de adultos: 1 Cantidad de ninos: 0
 R10
 Habitacion id: Personal1 tipo: Personal Cantidad de adultos: 1 Cantidad de ninos: 0
+R11
+Habitacion id: Personal0 tipo: Personal Cantidad de adultos: 0 Cantidad de ninos: 1
+R11
+Habitacion id: Personal1 tipo: Personal Cantidad de adultos: 0 Cantidad de ninos: 1
+R11
+Habitacion id: Grande Deluxe0 tipo: Grande Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R11
+Habitacion id: Grande Deluxe1 tipo: Grande Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
