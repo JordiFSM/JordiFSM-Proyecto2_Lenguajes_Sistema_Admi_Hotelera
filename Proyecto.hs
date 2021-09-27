@@ -935,6 +935,163 @@ mostrarTotalHuespedesAux lista res = do
     else
         mostrarTotalHuespedesAux tl9 res
 
+-------------------------------------- Facturar --------------------------------------------------------------------------
+
+facturar::IO()
+facturar = do
+    putStrLn "Indique el id de la reservacion a facturar"
+    idReserva <- getLine
+    lista0 <- leerArchivo "reservaciones.txt"
+    let respuesta = estaActiva idReserva lista0
+    if respuesta then
+        facturarAux idReserva
+    else
+        errorFacturaNoActiva idReserva
+
+facturarAux::String->IO()
+facturarAux idReserva = do
+    lista0 <- leerArchivo "codigoFactura.txt"
+    let numStr = head lista0
+    let numInt = (read numStr::Int) +1 
+    sobreEscribir "codigoFactura.txt" (show numInt)
+    let codFactura = identificadorFactura numStr
+    let res = [codFactura]++[idReserva]
+    putStrLn ("\nFactura #" ++ codFactura )
+    putStrLn ("Codigo de reservacion: " ++ idReserva ++ " \n")
+    facturarAux2 res
+
+facturarAux2::[String]->IO()
+facturarAux2 resFactura = do
+    lista0 <- leerArchivo "reservaciones.txt"
+    lista1 <- leerArchivo "infoHotel.txt"
+    let listaReserva = detalleReservacion (head (tail resFactura)) lista0
+    let reservacion = totalReservacion (head (tail resFactura)) lista0 
+    let reservacionInt = read reservacion::Int 
+    let infoHotelStr = infoHotel lista1
+    let iVA = div reservacionInt 100*13
+    let iVAStr = show iVA
+    let totalStr = show (reservacionInt+iVA)
+    putStrLn infoHotelStr
+    putStrLn ("Subtotal de reservacion: $" ++ reservacion)
+    putStrLn ("Impuestos de venta: $"++ iVAStr)
+    putStrLn ("Total de reservacion: $" ++ totalStr)
+    putStrLn "\n----Detalle de la reservacion----\n"
+    appendFile "facturas.txt" (head resFactura++"\n"++head(tail resFactura)++"\n"++reservacion++"\n"++iVAStr++"\n"++totalStr++"\n")
+    let identificador = head listaReserva
+    let tl = tail listaReserva
+    let nombreReserva = head tl
+    let tl2 = tail tl
+    let fechaReserva = head tl2
+    let tl3 = tail tl2
+    let fechaIngreso = head tl3
+    let tl4 = tail tl3
+    let fechaSalida = head tl4
+    let tl5 = tail tl4
+    let cantAdultos = head tl5
+    let tl6 = tail tl5
+    let cantNinos = head tl6
+    let tl7 = tail tl6
+    let estado = head tl7
+    let tl8 = tail tl7
+    let total = head tl8
+    let tl9 = tail tl8
+    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ estado ++ "\nTotal: $"++total++"\n"
+    putStrLn mensaje
+    cambiarEstadoFacturado (head (tail resFactura))
+    putStrLn "\nFacturado con exito!!!\n"
+    menuOpcionesUsuario
+
+
+--cancelarReservacion
+--Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista ademas de limpiar el txt de reservaciones y pedir el ID a cancelar
+--Entrada: --
+--Salida: --
+--Restricciones: --
+cambiarEstadoFacturado::String->IO()
+cambiarEstadoFacturado idReserva = do
+    lista <-leerArchivo "reservaciones.txt"
+    sobreEscribir "reservaciones.txt" ""
+    cambiarEstadoFacturadoAux lista idReserva
+
+--cancelarReservacionAux
+--Objetivo: Se encarga de cancelar una reservacion cambiando su estado en cancelado
+--Entrada: Una lista de String y un String
+--Salida: --
+--Restricciones: --
+cambiarEstadoFacturadoAux:: [String]->String->IO()
+cambiarEstadoFacturadoAux [] idReser = menuOpcionesUsuario
+cambiarEstadoFacturadoAux lista idReser = do
+    let identificador = head lista
+    let tl = tail lista
+    let nombreReserva = head tl
+    let tl2 = tail tl
+    let fechaReserva = head tl2
+    let tl3 = tail tl2
+    let fechaIngreso = head tl3
+    let tl4 = tail tl3
+    let fechaSalida = head tl4
+    let tl5 = tail tl4
+    let cantAdultos = head tl5
+    let tl6 = tail tl5
+    let cantNinos = head tl6
+    let tl7 = tail tl6
+    let estado = head tl7
+    let tl8 = tail tl7
+    let total = head tl8
+    let tl9 = tail tl8
+    let reservarSi = identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ "Facturado" ++ "\n"++total++"\n"
+    let reservarNo = identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ estado ++ "\n"++total++"\n"
+    if identificador == idReser then
+        appendFile "reservaciones.txt" reservarSi
+    else
+        appendFile "reservaciones.txt" reservarNo
+    cambiarEstadoFacturadoAux tl9 idReser
+
+totalReservacion::String->[String]->String
+totalReservacion idReserva [] = "0"
+totalReservacion idReserva lista = do
+    let idReservaLista = head lista
+    if idReserva == idReservaLista then
+        head (tail (tail (tail(tail(tail(tail(tail(tail lista))))))))
+    else
+        totalReservacion idReserva (cortarLista lista 8 0) 
+
+detalleReservacion::String->[String]->[String]
+detalleReservacion idReserva lista = do
+    let idReservaLista = head lista
+    if idReserva == idReservaLista then
+         sumarSig8 lista 9 []
+    else
+        detalleReservacion idReserva (cortarLista lista 8 0)
+
+sumarSig8::[String]->Int->[String]->[String]
+sumarSig8 lista 0 res = res
+sumarSig8 lista num res = do
+    let res2 = res++[head lista]
+    sumarSig8 (tail lista) (num-1) res2
+
+errorFacturaNoActiva::String->IO()
+errorFacturaNoActiva idReserva = do
+    putStrLn ("La reservación "++idReserva ++ " no esta en estado activa o no existe.\n")
+    facturar
+
+identificadorFactura::String->String
+identificadorFactura strID = do
+    let idF = "F00"++strID
+    idF
+
+estaActiva::String->[String]->Bool 
+estaActiva idReserva [] = False
+estaActiva idReserva listaReservas= do
+    let estado = (head(tail(tail(tail(tail(tail(tail(tail listaReservas))))))))
+    let idReservaLista = head listaReservas
+    if idReserva == idReservaLista then
+        if estado == "Activa" then
+            True 
+        else
+            False 
+    else
+        estaActiva idReserva (tail listaReservas)
 
 ---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
@@ -968,6 +1125,7 @@ menuOpcionesUsuario = do
     case name of
         "1" -> reserver
         "2" -> cancelarReservacion
+        "3" -> facturar
         "4" -> main
         _ -> menuOpcionesUsuario
 
