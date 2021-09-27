@@ -789,17 +789,43 @@ cancelarReservacionAux lista idReser = do
     let tl7 = tail tl6
     let estado = head tl7
     let tl8 = tail tl7
+    let total = head tl8
+    let tl9 = tail tl8
+    let reservarSi = identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ "Cancelado" ++ "\n"++total++"\n"
+    let reservarNo = identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ estado ++ "\n"++total++"\n"
     if (identificador == idReser) then
         if (estado == "Activa") then
-            appendFile "reservaciones.txt" (identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ "Cancelado" ++ "\n")
+            printearMsgCancelado reservarSi 
         else
-            putStrLn ("La reserva solicitada no esta en estado Activa")
+            printearMsgNoCancelado reservarNo 
     else
-        appendFile "reservaciones.txt" (identificador ++ "\n" ++ nombreReserva ++ "\n" ++ fechaReserva ++ "\n" ++ fechaIngreso ++ "\n" ++ fechaSalida ++ "\n" ++ cantAdultos ++ "\n" ++ cantNinos ++ "\n" ++ estado ++ "\n") 
+        appendFile "reservaciones.txt" reservarNo
     
-    cancelarReservacionAux tl8 idReser
+    cancelarReservacionAux tl9 idReser
 
 -----------------------------------------------------------Consultar Historial de reservaciones-------------------------------------------------------------
+--printearMsgCancelado
+--Objetivo: Se encarga de printear el mensaje de que si se pudo cancelar y meter en el archivo de reservaciones la reservacion cancelada
+--Entrada: Una lista de String
+--Salida: --
+--Restricciones: --
+printearMsgCancelado::String->IO()
+printearMsgCancelado reserva= do
+    appendFile "reservaciones.txt" reserva
+    let mensaje = "La reservacion fue cancelada exitosamente\n"
+    putStrLn mensaje
+
+--printearMsgNoCancelado
+--Objetivo: Se encarga de printear el mensaje de no se pudo cancelar la reservacion y meter la reservacion en el archivo de reservaciones
+--Entrada: Una lista de String
+--Salida: --
+--Restricciones: --
+printearMsgNoCancelado::String->IO()
+printearMsgNoCancelado reserva= do
+    appendFile "reservaciones.txt" reserva
+    let mensaje = "La reservacion no pudo ser cancelada porque el estado no esta en Activa\n"
+    putStrLn mensaje
+
 --mostrarHistorialReservaciones
 --Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista
 --Entrada: --
@@ -837,10 +863,12 @@ mostrarHistorialReservacionesAux lista = do
     let tl7 = tail tl6
     let estado = head tl7
     let tl8 = tail tl7
-    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ estado ++ "\n"
+    let total = head tl8
+    let tl9 = tail tl8
+    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ estado ++ "\n"++total++"\n"
     putStrLn mensaje
     mostrarHistorialReservacionesAux2 listaHabitacion identificador
-    mostrarHistorialReservacionesAux tl8
+    mostrarHistorialReservacionesAux tl9
 
 --mostrarHistorialReservacionesAux2
 --Objetivo: Se encarga de mostrar el detalle de las habitaciones reservadas con el identificador de reserva
@@ -860,6 +888,52 @@ mostrarHistorialReservacionesAux2 lista ident = do
     else
         putStrLn ""
     mostrarHistorialReservacionesAux2 tl2 ident
+
+--mostrarTotalHuespedes
+--Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista
+--Entrada: --
+--Salida: --
+--Restricciones: --
+mostrarTotalHuespedes:: IO()
+mostrarTotalHuespedes = do
+    listaReservacion <- leerArchivo "reservaciones.txt"
+    let total = mostrarTotalHuespedesAux listaReservacion 0
+    let mensaje = "El total de huespedes es: "++show total++"\n"
+    putStrLn mensaje
+    menuEstadisticas
+
+--mostrarTotalHuespedesAux
+--Objetivo: Se encarga de mostrar el total de huespedes con reservaciones en estado activa o facturada
+--Entrada: Una lista de String y un entero
+--Salida: Un entero
+--Restricciones: --
+mostrarTotalHuespedesAux:: [String]->Int->Int 
+mostrarTotalHuespedesAux [] res = res 
+mostrarTotalHuespedesAux lista res = do
+    let identificador = head lista
+    let tl = tail lista
+    let nombreReserva = head tl
+    let tl2 = tail tl
+    let fechaReserva = head tl2
+    let tl3 = tail tl2
+    let fechaIngreso = head tl3
+    let tl4 = tail tl3
+    let fechaSalida = head tl4
+    let tl5 = tail tl4
+    let cantAdultos = head tl5
+    let tl6 = tail tl5
+    let cantNinos = head tl6
+    let tl7 = tail tl6
+    let estado = head tl7
+    let tl8 = tail tl7
+    let tl9 = tail tl8
+    let intCantAdultos = read(cantAdultos)::Int
+    let intCantNinos = read(cantNinos)::Int
+    let suma = intCantAdultos + intCantNinos
+    if (estado == "Activa" || estado == "Facturada") then
+        mostrarTotalHuespedesAux tl9 suma + res
+    else
+        mostrarTotalHuespedesAux tl9 res
 
 
 ---------------------------------------Menus------------------------------------------------------------------------------
@@ -883,6 +957,7 @@ menuAdministrativo = do
         "3" -> listaHabitaciones
         "4" -> cargarTarifa
         "5" -> mostrarHistorialReservaciones
+        "7" -> menuEstadisticas
         "8" -> main
         _ -> menuAdministrativo
 
@@ -895,4 +970,12 @@ menuOpcionesUsuario = do
         "2" -> cancelarReservacion
         "4" -> main
         _ -> menuOpcionesUsuario
+
+menuEstadisticas :: IO ()
+menuEstadisticas = do
+    putStrLn "\t1.Total de Huespedes\n\t2.Historial de habitaciones ocupadas\n\t3.Total de habitaciones no ocupadas\n\t4.Monto recaudado con impuestos\n\t5.Volver\n >>>Indique:"
+    name <- getLine
+    case name of
+        "1" -> mostrarTotalHuespedes
+        "5" -> menuAdministrativo
 

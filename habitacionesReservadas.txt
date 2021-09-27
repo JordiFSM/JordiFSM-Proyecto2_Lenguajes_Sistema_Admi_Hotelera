@@ -28,3 +28,7 @@ R11
 Habitacion id: Grande Deluxe0 tipo: Grande Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
 R11
 Habitacion id: Grande Deluxe1 tipo: Grande Deluxe Cantidad de adultos: 2 Cantidad de ninos: 0
+R12
+Habitacion id: Deluxe0 tipo: Deluxe Cantidad de adultos: 1 Cantidad de ninos: 0
+R12
+Habitacion id: Deluxe1 tipo: Deluxe Cantidad de adultos: 1 Cantidad de ninos: 0
