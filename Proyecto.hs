@@ -1093,6 +1093,75 @@ estaActiva idReserva listaReservas= do
     else
         estaActiva idReserva (tail listaReservas)
 
+--------------------------------------------Consultar Facturas-----------------------------------------------------------
+--consultarFacturas
+--Objetivo: Se encarga de leer el archivo de facturas y hacerla una lista
+--Entrada: --
+--Salida: --
+--Restricciones: --
+consultarFacturas:: IO()
+consultarFacturas = do
+    listaFacturas <- leerArchivo "facturas.txt"
+    consultarFacturasAux listaFacturas
+
+--consultarFacturasAux
+--Objetivo: Se encarga de mostrar todas las facturas
+--Entrada: Una lista de String
+--Salida: --
+--Restricciones: --
+consultarFacturasAux::[String]->IO()
+consultarFacturasAux [] = menuAdministrativo
+consultarFacturasAux lista = do
+    let numFactura = head lista
+    let tl = tail lista
+    let idReserva = head tl
+    let tl2 = tail tl
+    let subtotal = head tl2
+    let tl3 = tail tl2
+    let iva = head tl3
+    let tl4 = tail tl3
+    let total = head tl4
+    let tl5 = tail tl4
+    let mensaje = "Codigo de factura: "++numFactura++"\nTotal: "++total++"\nIdentificador de reserva: "++idReserva++"\n"
+    putStrLn "-----------------------------------------------------------------------------------------------------------------"
+    putStrLn mensaje
+    consultarFacturasAux tl5
+
+------------------------------------------------Calcular total recaudado con impuestos--------------------------------------------------
+
+--calcularTotalRecaudado
+--Objetivo: Se encarga de leer el archivo de facturas y hacerla una lista ademas de mostrar el total recaudado con impuestos
+--Entrada: --
+--Salida: --
+--Restricciones: --
+calcularTotalRecaudado:: IO()
+calcularTotalRecaudado = do
+    listaFacturas <- leerArchivo "facturas.txt"
+    let total = calcularTotalRecaudadoAux listaFacturas 0
+    let mensaje = "El total recaudado con impuestos es de $"++show total++"\n"
+    putStrLn mensaje
+    menuEstadisticas
+
+--calcularTotalRecaudadoAux
+--Objetivo: Se encarga de recorrer la lista de facturas y sumar los totales para retornarlo
+--Entrada: Una lista de String y un entero
+--Salida: Un entero
+--Restricciones: --
+calcularTotalRecaudadoAux:: [String]->Int->Int 
+calcularTotalRecaudadoAux [] res = res 
+calcularTotalRecaudadoAux lista res = do
+    let numFactura = head lista
+    let tl = tail lista
+    let idReserva = head tl
+    let tl2 = tail tl
+    let subtotal = head tl2
+    let tl3 = tail tl2
+    let iva = head tl3
+    let tl4 = tail tl3
+    let total = head tl4
+    let tl5 = tail tl4
+    let totalInt = read(total)::Int
+    calcularTotalRecaudadoAux tl5 totalInt + res
 ---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
 main = do
@@ -1114,6 +1183,7 @@ menuAdministrativo = do
         "3" -> listaHabitaciones
         "4" -> cargarTarifa
         "5" -> mostrarHistorialReservaciones
+        "6" -> consultarFacturas
         "7" -> menuEstadisticas
         "8" -> main
         _ -> menuAdministrativo
@@ -1135,5 +1205,6 @@ menuEstadisticas = do
     name <- getLine
     case name of
         "1" -> mostrarTotalHuespedes
+        "4" -> calcularTotalRecaudado
         "5" -> menuAdministrativo
 

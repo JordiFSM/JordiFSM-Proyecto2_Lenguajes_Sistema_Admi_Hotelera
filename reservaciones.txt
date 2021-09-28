@@ -5,7 +5,7 @@ Jordi Segura
 20/5/2021
 4
 0
-Cancelado
+Facturado
 3200
 R8
 Esteban Murillo
@@ -14,7 +14,7 @@ Esteban Murillo
 25/10/2021
 1
 0
-Cancelado
+Facturado
 3300
 R9
 Rosa Alvarado
