@@ -121,6 +121,11 @@ escribirArchivo :: (System.IO.FilePath, [Char]) -> IO ()
 escribirArchivo (archivo, algo) = do
     appendFile archivo (algo ++ "\n")
 
+--estaLista
+--Objetivo: Verifica si el elemento esta en la lista
+--Entrada: un String y una lista de Sring
+--Salida: Un booleano
+--Restricciones: 
 estaLista :: String->[String]->Bool
 estaLista nombre [] = False
 estaLista nombre lista = do
@@ -179,7 +184,9 @@ escribirArchivoHabitaciones archivo lista = do
 cargarHabitaciones:: IO()
 cargarHabitaciones = do
     lista0 <- leerArchivo"habitaciones.txt"
-    lista1 <- leerArchivo"tiposH.txt"
+    putStrLn "\nIngrese la ruta del archivo con los tipos de habitaciones: "
+    ruta <- getLine
+    lista1 <- leerArchivo ruta
     let lista2 = listaSinRepetidos lista1 lista0 0
     sobreEscribir "habitaciones.txt" ""
     escribirArchivoHabitaciones "habitaciones.txt" lista2
@@ -229,12 +236,39 @@ cargarCantidades archivo lista = do
     let hd = head lista
     let tl = tail lista
     let mensaje = "\tDigite la cantidad de habitaciones que tendrá la habitacion " ++ hd ++ " >>>Indique: "
+    sobreEscribir "validarCargarCantTipos.txt" ""
     putStrLn mensaje
     cant <- getLine
+    appendFile "validarCargarCantTipos.txt" ("Si")
     appendFile archivo (hd ++ "\n")
     appendFile archivo (cant ++ "\n")
     cant2 <- strToInt(cant)
     generarHabitaciones archivo hd cant2 0 tl "codigosHabitaciones.txt"
+
+--validarCargarCantidades
+--Objetivo: Se encarga de validar que cargar cantidad de habitaciones por tipo solo se ejecute 1 vez
+--Entrada: --
+--Salida: --
+--Restricciones:--
+validarCargarCantidades::IO()
+validarCargarCantidades = do
+    validar <- leerArchivo "validarCargarCantTipos.txt"
+    let valido = head validar
+    if (valido == "Si") then
+        printearMsgNoCargar
+    else
+        listaHabitaciones
+
+--printearMsgNoCargar
+--Objetivo: Se encarga de mostrar el mensaje cuando ya se ha cargado las cantidades de habitaciones por tipo
+--Entrada: --
+--Salida: --
+--Restricciones:--
+printearMsgNoCargar::IO()
+printearMsgNoCargar = do
+    let mensaje = "No se puede cargar las cantidades debido a que ya fueron cargadas\n"
+    putStrLn mensaje
+    menuAdministrativo 
     
 --generarHabitaciones
 --Objetivo: genera cant cantidades de códigos para una habitación y los envía a escribir al archivo de códigos
@@ -930,13 +964,17 @@ mostrarTotalHuespedesAux lista res = do
     let intCantAdultos = read(cantAdultos)::Int
     let intCantNinos = read(cantNinos)::Int
     let suma = intCantAdultos + intCantNinos
-    if (estado == "Activa" || estado == "Facturada") then
+    if (estado == "Activa" || estado == "Facturado") then
         mostrarTotalHuespedesAux tl9 suma + res
     else
         mostrarTotalHuespedesAux tl9 res
 
 -------------------------------------- Facturar --------------------------------------------------------------------------
-
+--facturar
+--Objetivo: Se encarga de pedir el id de la reservacion a facturar para ser redirigido a facturarAux
+--Entrada: --
+--Salida: --
+--Restricciones: --
 facturar::IO()
 facturar = do
     putStrLn "Indique el id de la reservacion a facturar"
@@ -948,6 +986,11 @@ facturar = do
     else
         errorFacturaNoActiva idReserva
 
+--facturarAux
+--Objetivo: Se encarga de mostrar los codigos de factura y de reservacion asi como enviar al usuario a facturarAux2
+--Entrada: Un String
+--Salida: --
+--Restricciones: --
 facturarAux::String->IO()
 facturarAux idReserva = do
     lista0 <- leerArchivo "codigoFactura.txt"
@@ -960,6 +1003,11 @@ facturarAux idReserva = do
     putStrLn ("Codigo de reservacion: " ++ idReserva ++ " \n")
     facturarAux2 res
 
+--facturarAux2
+--Objetivo: Se encarga de mostrar la factura de forma completa y la guarda
+--Entrada: Una lista de Strings
+--Salida: --
+--Restricciones: --
 facturarAux2::[String]->IO()
 facturarAux2 resFactura = do
     lista0 <- leerArchivo "reservaciones.txt"
@@ -995,11 +1043,10 @@ facturarAux2 resFactura = do
     let tl8 = tail tl7
     let total = head tl8
     let tl9 = tail tl8
-    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ estado ++ "\nTotal: $"++total++"\n"
+    let mensaje = "Identificador: " ++ identificador ++ "\nNombre de la persona que reservo: " ++ nombreReserva ++ "\nFecha de reserva: " ++ fechaReserva ++ "\nFecha de ingreso: " ++ fechaIngreso ++ "\nFecha de salida: " ++ fechaSalida ++ "\nCantidad de adultos: " ++ cantAdultos ++ "\nCantidad de ninos: " ++ cantNinos ++ "\nEstado: " ++ "Facturado" ++ "\nTotal: $"++total++"\n"
     putStrLn mensaje
-    cambiarEstadoFacturado (head (tail resFactura))
     putStrLn "\nFacturado con exito!!!\n"
-    menuOpcionesUsuario
+    cambiarEstadoFacturado (head (tail resFactura))
 
 
 --cancelarReservacion
@@ -1047,6 +1094,11 @@ cambiarEstadoFacturadoAux lista idReser = do
         appendFile "reservaciones.txt" reservarNo
     cambiarEstadoFacturadoAux tl9 idReser
 
+--totalReservacion
+--Objetivo: Se encarga de calcular el total de la reservacion indicada
+--Entrada:  Un String y una lista de String 
+--Salida: Un String
+--Restricciones: que las entradas sean String y una lista de String 
 totalReservacion::String->[String]->String
 totalReservacion idReserva [] = "0"
 totalReservacion idReserva lista = do
@@ -1056,6 +1108,11 @@ totalReservacion idReserva lista = do
     else
         totalReservacion idReserva (cortarLista lista 8 0) 
 
+--detalleReservacion
+--Objetivo: Se encarga de obtener los detalles de una reservacion y los guarda en una lista
+--Entrada:  Un String y una lista de String 
+--Salida: Una lista String
+--Restricciones: que las entradas sean String y una lista de String 
 detalleReservacion::String->[String]->[String]
 detalleReservacion idReserva lista = do
     let idReservaLista = head lista
@@ -1064,6 +1121,11 @@ detalleReservacion idReserva lista = do
     else
         detalleReservacion idReserva (cortarLista lista 8 0)
 
+--sumarSig8
+--Objetivo: Se encarga de tomar los siguientes 8 de una lista y pasarlas a otras y retorna la lista con los 8 elementos
+--Entrada:  Dos lista de String y un entero
+--Salida: Una lista String
+--Restricciones: que las entradas sean un entero y dos lista de String 
 sumarSig8::[String]->Int->[String]->[String]
 sumarSig8 lista 0 res = res
 sumarSig8 lista num res = do
@@ -1080,6 +1142,11 @@ identificadorFactura strID = do
     let idF = "F00"++strID
     idF
 
+--estaActiva
+--Objetivo: Se encarga de verificar que una reservacion este activa
+--Entrada:  Un String y una lista de Strings
+--Salida: Bool
+--Restricciones: que las entradas sean un String y una lista de String 
 estaActiva::String->[String]->Bool 
 estaActiva idReserva [] = False
 estaActiva idReserva listaReservas= do
@@ -1180,7 +1247,7 @@ menuAdministrativo = do
     case name of
         "1" -> mostrarInfoHotel
         "2" -> cargarHabitaciones
-        "3" -> listaHabitaciones
+        "3" -> validarCargarCantidades
         "4" -> cargarTarifa
         "5" -> mostrarHistorialReservaciones
         "6" -> consultarFacturas

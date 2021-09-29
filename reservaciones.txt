@@ -32,7 +32,7 @@ Kevin Lanzas
 16/12/2021
 2
 0
-Cancelado
+Facturado
 3500
 R11
 Cesar Rodriguez
@@ -43,3 +43,21 @@ Cesar Rodriguez
 2
 Facturado
 3600
+R14
+Kevin Sanchez
+2021/9/29 23:20:6.525861300000
+15/10/2021
+20/10/2021
+2
+0
+Cancelado
+4878193262468804257
+R15
+Jordi Sanchez
+2021/9/29 23:21:25.226860700000
+14/10/2021
+16/10/2021
+2
+0
+Facturado
+3200
