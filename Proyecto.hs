@@ -168,7 +168,7 @@ listaSinRepetidos lista res opcion = do
 --Restricciones: que las entradas sean un path de archivo y una lista de strings
 
 escribirArchivoHabitaciones :: System.IO.FilePath->[String]->IO ()
-escribirArchivoHabitaciones archivo [] = menuAdministrativo
+escribirArchivoHabitaciones archivo [] = putStrLn "Se Cargo exitosamente los tipos de habitaciones!!!\n"
 escribirArchivoHabitaciones archivo lista = do
     let hd = head lista
     let tl = tail lista
@@ -189,7 +189,7 @@ cargarHabitaciones = do
     lista1 <- leerArchivo ruta
     let lista2 = listaSinRepetidos lista1 lista0 0
     sobreEscribir "habitaciones.txt" ""
-    escribirArchivoHabitaciones "habitaciones.txt" lista2
+    escribirArchivoHabitaciones "habitaciones.txt" lista2 
     menuAdministrativo
 
 ------------------------------ cantidad habitaciones -------------------------------------------------------------
@@ -905,11 +905,10 @@ mostrarHistorialReservacionesAux lista = do
     mostrarHistorialReservacionesAux tl9
 
 --mostrarHistorialReservacionesAux2
---Objetivo: Se encarga de mostrar el detalle de las habitaciones reservadas con el identificador de reserva
+--Objetivo: Se encarga de validar el detalle de las habitaciones reservadas con el identificador de reserva
 --Entrada: Una lista de String un String
 --Salida: --
---Restricciones: --
-
+--Restricciones: que sea un string y una lista de strings
 mostrarHistorialReservacionesAux2::[String]->String->IO()
 mostrarHistorialReservacionesAux2 [] ident = putStrLn "---------------------------------------------------------------"
 mostrarHistorialReservacionesAux2 lista ident = do
@@ -918,9 +917,18 @@ mostrarHistorialReservacionesAux2 lista ident = do
     let info = head tl
     let tl2 = tail tl
     if(ident == idReservacion)then
-        putStrLn info
+        printDetalleReservaciones info tl2 ident
     else
-        putStrLn ""
+        mostrarHistorialReservacionesAux2 tl2 ident
+
+--printDetalleReservaciones
+--Objetivo: Se encarga de mostrar el detalle de las habitaciones reservadas con el identificador de reserva
+--Entrada: Una lista de String un String y dos strings
+--Salida: --
+--Restricciones: que sean dos strings y una lista de strings
+printDetalleReservaciones::String->[String]->String->IO()
+printDetalleReservaciones mensaje tl2 ident= do
+    putStrLn mensaje
     mostrarHistorialReservacionesAux2 tl2 ident
 
 --mostrarTotalHuespedes
@@ -1049,22 +1057,22 @@ facturarAux2 resFactura = do
     cambiarEstadoFacturado (head (tail resFactura))
 
 
---cancelarReservacion
---Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista ademas de limpiar el txt de reservaciones y pedir el ID a cancelar
---Entrada: --
+--cambiarEstadoFacturado
+--Objetivo: Se encarga de leer el archivo de reservaciones y hacerla una lista ademas de limpiar el txt de reservaciones
+--Entrada: un String
 --Salida: --
---Restricciones: --
+--Restricciones: Que sea String
 cambiarEstadoFacturado::String->IO()
 cambiarEstadoFacturado idReserva = do
     lista <-leerArchivo "reservaciones.txt"
     sobreEscribir "reservaciones.txt" ""
     cambiarEstadoFacturadoAux lista idReserva
 
---cancelarReservacionAux
---Objetivo: Se encarga de cancelar una reservacion cambiando su estado en cancelado
+--cambiarEstadoFacturadoAux
+--Objetivo: Se encarga de cambiar el estado de una reservacion en Facturado
 --Entrada: Una lista de String y un String
 --Salida: --
---Restricciones: --
+--Restricciones: Que sea un String y una lista de strings
 cambiarEstadoFacturadoAux:: [String]->String->IO()
 cambiarEstadoFacturadoAux [] idReser = menuOpcionesUsuario
 cambiarEstadoFacturadoAux lista idReser = do
@@ -1205,7 +1213,7 @@ calcularTotalRecaudado:: IO()
 calcularTotalRecaudado = do
     listaFacturas <- leerArchivo "facturas.txt"
     let total = calcularTotalRecaudadoAux listaFacturas 0
-    let mensaje = "El total recaudado con impuestos es de $"++show total++"\n"
+    let mensaje = "El total de impuestos recaudados es de $"++show total++"\n"
     putStrLn mensaje
     menuEstadisticas
 
@@ -1227,7 +1235,7 @@ calcularTotalRecaudadoAux lista res = do
     let tl4 = tail tl3
     let total = head tl4
     let tl5 = tail tl4
-    let totalInt = read(total)::Int
+    let totalInt = read(iva)::Int
     calcularTotalRecaudadoAux tl5 totalInt + res
 ---------------------------------------Menus------------------------------------------------------------------------------
 main :: IO ()
